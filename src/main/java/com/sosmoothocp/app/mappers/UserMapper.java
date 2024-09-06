@@ -37,6 +37,7 @@ public class UserMapper {
 
     public static UserDto fromRequestToDto(RegistrationRequest request) {
         return UserDto.builder()
+                .id(null)
                 .email(request.email())
                 .password(request.password())
                 .fullName(request.fullName())
