@@ -9,10 +9,7 @@ import lombok.Setter;
 import jakarta.validation.constraints.Email;
 
 
-@Getter
-@Setter
 @Builder
-@AllArgsConstructor
 public record RegistrationRequest(
         @Email(message = "Please enter a valid email address.")
         @NotBlank(message = "Please enter a valid email address.")
