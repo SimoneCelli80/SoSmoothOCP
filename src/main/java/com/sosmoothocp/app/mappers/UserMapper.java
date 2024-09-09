@@ -3,6 +3,7 @@ package com.sosmoothocp.app.mappers;
 import com.sosmoothocp.app.persistence.entities.User;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.RegistrationRequest;
+import com.sosmoothocp.app.rest.response.UserResponse;
 
 public class UserMapper {
 
@@ -42,6 +43,14 @@ public class UserMapper {
                 .password(request.password())
                 .fullName(request.fullName())
                 .displayName(request.userName())
+                .build();
+    }
+    public static UserResponse fromDtoToResponse(UserDto dto) {
+        return UserResponse.builder()
+                .id(dto.getId().toString())
+                .email(dto.getEmail())
+                .fullName(dto.getFullName())
+                .displayName(dto.getDisplayName())
                 .build();
     }
 }
