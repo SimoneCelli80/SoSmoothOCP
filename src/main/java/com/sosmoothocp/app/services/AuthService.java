@@ -23,7 +23,7 @@ public class AuthService {
     public void registerUser(UserDto userDto) {
         if(userRepository.existsByEmail(userDto.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already in use. Please choose another one.");
-        } else if (userRepository.existsByUserName(userDto.getUserName())) {
+        } else if (userRepository.existsByUserName(userDto.getDisplayName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use. Please choose another one.");
         } else {
             String hashPassword = passwordEncoder.encode(userDto.getPassword());

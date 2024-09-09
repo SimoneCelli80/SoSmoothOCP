@@ -21,7 +21,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .password(user.getPassword())
                 .fullName(user.getFullName())
-                .userName(user.getUserName())
+                .displayName(user.getUserName())
                 .build();
     }
 
@@ -31,7 +31,7 @@ public class UserMapper {
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .fullName(dto.getFullName())
-                .userName(dto.getUserName())
+                .userName(dto.getDisplayName())
                 .build();
     }
 
@@ -41,7 +41,7 @@ public class UserMapper {
                 .email(request.email())
                 .password(request.password())
                 .fullName(request.fullName())
-                .userName(request.userName())
+                .displayName(request.userName())
                 .build();
     }
 }
