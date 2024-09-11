@@ -13,7 +13,7 @@ public class UserDtoFactory {
                 .fullName("Mario Rossi")
                 .email("mario.rossi@campgemini.com")
                 .userName("MeglioMario")
-                .password("123456");
+                .password("Password1#");
     }
 
 }

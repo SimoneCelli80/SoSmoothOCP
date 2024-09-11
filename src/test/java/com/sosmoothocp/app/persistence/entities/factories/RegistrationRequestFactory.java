@@ -6,7 +6,7 @@ public class RegistrationRequestFactory {
     public static RegistrationRequest.RegistrationRequestBuilder aRegistrationRequest() {
         return RegistrationRequest.builder()
                 .email("mario.rossi@capgemini.com")
-                .password("password")
+                .password("Password1#")
                 .fullName("Mario Rossi")
                 .userName("MeglioMario");
     }

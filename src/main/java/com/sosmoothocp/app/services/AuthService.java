@@ -46,20 +46,19 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
-        if (userRepository.existsByEmail(loginRequest.email())) {
-            User user = userRepository.findByEmail(loginRequest.email()).get();
-            if (passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        loginRequest.email(), loginRequest.password()
-                );
-                authenticationManager.authenticate(authToken);
-                String jwt = jwtUtil.generateToken(user, generateExtraClaims(user));
-                return new LoginResponse(jwt);
-            }
-        } else {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect email and password combination");
+
+        User user = userRepository.findByEmail(loginRequest.email())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email password combination."));
+        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email password combination.");
         }
-        return null;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                loginRequest.email(), loginRequest.password()
+        );
+
+        authenticationManager.authenticate(authToken);
+        String jwt = jwtUtil.generateToken(user, generateExtraClaims(user));
+        return new LoginResponse(jwt);
     }
 
     private Map<String, Object> generateExtraClaims(User user) {
