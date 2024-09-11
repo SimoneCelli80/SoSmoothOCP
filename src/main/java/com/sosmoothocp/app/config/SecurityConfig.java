@@ -32,8 +32,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers(new AntPathRequestMatcher("/api/**/user/**")).hasAuthority("ROLE_USER")
-                            .requestMatchers(new AntPathRequestMatcher("/api/**/admin/**")).hasAuthority("ROLE_ADMIN")
+//                            .requestMatchers(new AntPathRequestMatcher("/api/**/user/**")).hasAuthority("ROLE_USER")
+//                            .requestMatchers(new AntPathRequestMatcher("/api/**/admin/**")).hasAuthority("ROLE_ADMIN")
                             .anyRequest().permitAll();
                 });
         return http.build();

@@ -10,9 +10,9 @@ import java.util.UUID;
 @Setter
 @Builder
 public class UserDto {
-    UUID id;
+    UUID uuid;
     String email;
     String password;
     String fullName;
-    String displayName;
+    String userName;
 }
