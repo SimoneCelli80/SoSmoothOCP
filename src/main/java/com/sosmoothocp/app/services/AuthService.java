@@ -48,9 +48,9 @@ public class AuthService {
     public LoginResponse login(LoginRequest loginRequest) {
 
         User user = userRepository.findByEmail(loginRequest.email())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email password combination."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email-password combination."));
         if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email password combination.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email-password combination.");
         }
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.email(), loginRequest.password()
