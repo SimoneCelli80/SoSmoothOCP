@@ -5,24 +5,51 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+
 @RestControllerAdvice
-public class ApplicationExceptionHandler extends RuntimeException {
+public class ApplicationExceptionHandler {
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public static ResponseEntity<Map<String, Object>> handleInvalidArgument(MethodArgumentNotValidException exception) {
+    public ResponseEntity<ApiErrorResponse> handleInvalidArgument(MethodArgumentNotValidException exception) {
         Map<String, String> errorMap = new HashMap<>();
         exception.getBindingResult().getFieldErrors().forEach(error -> {
             errorMap.put(error.getField(), error.getDefaultMessage());
         });
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", String.valueOf(LocalDate.now()));
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        response.put("errors", errorMap);
+       ApiErrorResponse response = new ApiErrorResponse(
+               HttpStatus.BAD_REQUEST.value(),
+               "Validation Error",
+               errorMap
+       );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiErrorResponse> handleResponseStatusException(ResponseStatusException exception) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                exception.getStatusCode().value(),
+                exception.getReason(),
+                null
+        );
+        return new ResponseEntity<>(response, exception.getStatusCode());
+    }
+
+    @ExceptionHandler(FieldValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleFieldValidationException(FieldValidationException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put(ex.getField(), ex.getMessage());
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                errorMap
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.sosmoothocp.app.services;
 
 import com.sosmoothocp.app.config.JwtUtil;
+import com.sosmoothocp.app.exception.FieldValidationException;
 import com.sosmoothocp.app.mappers.UserMapper;
 import com.sosmoothocp.app.persistence.entities.User;
 import com.sosmoothocp.app.persistence.repositories.UserRepository;
@@ -34,15 +35,16 @@ public class AuthService {
 
     public void registerUser(UserDto userDto) {
         if(userRepository.existsByEmail(userDto.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already in use. Please choose another one.");
-        } else if (userRepository.existsByUserName(userDto.getUserName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use. Please choose another one.");
-        } else {
-            String hashPassword = passwordEncoder.encode(userDto.getPassword());
-            User user = UserMapper.fromDtoToEntity(userDto);
-            user.setPassword(hashPassword);
-            userRepository.save(user);
+            throw new FieldValidationException("email", "Email is already in use. Please choose another one.");
         }
+        if (userRepository.existsByUserName(userDto.getUserName())) {
+            throw new FieldValidationException("username", "Username is already in use. Please choose another one.");
+        }
+
+        String hashPassword = passwordEncoder.encode(userDto.getPassword());
+        User user = UserMapper.fromDtoToEntity(userDto);
+        user.setPassword(hashPassword);
+        userRepository.save(user);
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
