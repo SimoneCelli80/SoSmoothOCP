@@ -72,10 +72,7 @@ public class AuthService {
 
         response.addCookie(cookie);
 
-
-
-
-        return new LoginResponse(jwt);
+        return new LoginResponse(user.getUserName());
     }
 
     private Map<String, Object> generateExtraClaims(User user) {
