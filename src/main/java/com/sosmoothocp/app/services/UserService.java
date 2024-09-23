@@ -33,4 +33,9 @@ public class UserService {
                 .map(UserMapper::fromEntityToDto)
                 .collect(Collectors.toList());
     }
+
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
+    }
+
 }

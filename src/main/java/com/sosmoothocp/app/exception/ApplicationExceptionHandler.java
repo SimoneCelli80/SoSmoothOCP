@@ -6,8 +6,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,9 +38,9 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(FieldValidationException.class)
-    public ResponseEntity<ApiErrorResponse> handleFieldValidationException(FieldValidationException ex) {
+    public ResponseEntity<ApiErrorResponse> handleFieldValidationException(FieldValidationException exception) {
         Map<String, String> errorMap = new HashMap<>();
-        errorMap.put(ex.getField(), ex.getMessage());
+        errorMap.put(exception.getField(), exception.getMessage());
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),

@@ -1,5 +1,6 @@
 package com.sosmoothocp.app.services;
 
+import com.sosmoothocp.app.config.JwtConstants;
 import com.sosmoothocp.app.config.JwtUtil;
 import com.sosmoothocp.app.exception.FieldValidationException;
 import com.sosmoothocp.app.mappers.UserMapper;
@@ -8,6 +9,8 @@ import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.response.LoginResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,7 +50,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
 
         User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email-password combination."));
@@ -60,6 +63,18 @@ public class AuthService {
 
         authenticationManager.authenticate(authToken);
         String jwt = jwtUtil.generateToken(user, generateExtraClaims(user));
+
+        Cookie cookie = new Cookie("token", jwt);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // Assicurati di utilizzare HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge((int) JwtConstants.EXPIRATION_TIME / 1000);
+
+        response.addCookie(cookie);
+
+
+
+
         return new LoginResponse(jwt);
     }
 

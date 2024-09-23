@@ -5,10 +5,7 @@ import com.sosmoothocp.app.rest.response.UserResponse;
 import com.sosmoothocp.app.services.UserService;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,5 +33,11 @@ public class UserController {
                 .map(UserMapper::fromDtoToResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userResponses);
+    }
+
+    @DeleteMapping("/delete/all")
+    public ResponseEntity<String> deleteAllUsers() {
+        userService.deleteAllUsers();
+        return ResponseEntity.ok().body("All users successfully deleted.");
     }
 }
