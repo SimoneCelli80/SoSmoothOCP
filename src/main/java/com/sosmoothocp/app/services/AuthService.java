@@ -9,7 +9,9 @@ import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.response.LoginResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +53,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
+    public LoginResponse loginUser(LoginRequest loginRequest, HttpServletResponse response) {
 
         User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email-password combination."));
@@ -62,17 +65,17 @@ public class AuthService {
         );
 
         authenticationManager.authenticate(authToken);
-        String jwt = jwtUtil.generateToken(user, generateExtraClaims(user));
+        String accessToken = jwtUtil.generateToken(user, generateExtraClaims(user));
+        String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        Cookie cookie = new Cookie("token", jwt);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Assicurati di utilizzare HTTPS
-        cookie.setPath("/");
-        cookie.setMaxAge((int) JwtConstants.EXPIRATION_TIME / 1000);
+        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false); // Turn to true in production and use https
+        refreshCookie.setPath("/api/auth/refresh-token");
+        refreshCookie.setMaxAge((int) JwtConstants.REFRESH_EXPIRATION_TIME / 1000);
+        response.addCookie(refreshCookie);
 
-        response.addCookie(cookie);
-
-        return new LoginResponse(user.getUserName());
+        return new LoginResponse(user.getUserName(), accessToken);
     }
 
     private Map<String, Object> generateExtraClaims(User user) {
@@ -80,5 +83,34 @@ public class AuthService {
         extraClaims.put("name", user.getFullName());
         extraClaims.put("email", user.getEmail());
         return extraClaims;
+    }
+
+    public String refreshAccessToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No cookies present.");
+        }
+        String refreshToken = Arrays.stream(cookies)
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token missing."));
+        try {
+            jwtUtil.validateToken(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired.");
+        }
+        String userEmail = jwtUtil.extractUserEmail(refreshToken);
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found."));
+        return jwtUtil.generateToken(user, generateExtraClaims(user));
+    }
+
+    public void logoutUser(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/api/auth/refresh-token");
+        refreshTokenCookie.setMaxAge(0);
+        response.addCookie(refreshTokenCookie);
     }
 }

@@ -75,7 +75,7 @@ public class AuthControllerTest {
     void givenAValidLoginRequest_WhenLoggingIn_thenA200AndATokenShouldBeReturned() throws Exception {
         LoginRequest loginRequest = LoginRequestFactory.aLoginRequest().build();
         LoginResponse loginResponse = LoginResponse.builder().userName("Mario").build();
-        when(authService.login(any(LoginRequest.class), any(HttpServletResponse.class))).thenReturn(loginResponse);
+        when(authService.loginUser(any(LoginRequest.class), any(HttpServletResponse.class))).thenReturn(loginResponse);
         mockMvc.perform(post("/api/auth/login")
                         .content(objectMapper.writeValueAsString(loginRequest))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -83,21 +83,21 @@ public class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(authService, times(1)).login(any(LoginRequest.class), any(HttpServletResponse.class));
+        verify(authService, times(1)).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
         verifyNoMoreInteractions(authService);
     }
 
     @Test
     void givenAnInvalidLoginRequest_WhenLoggingIn_thenA400BadRequestShouldBeReturned() throws Exception {
         LoginRequest invalidLoginRequest = LoginRequestFactory.aLoginRequest().build();
-        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST)).when(authService).login(any(LoginRequest.class), any(HttpServletResponse.class));
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST)).when(authService).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
         mockMvc.perform(post("/api/auth/login")
                         .content(objectMapper.writeValueAsString(invalidLoginRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
-        verify(authService, times(1)).login(any(LoginRequest.class), any(HttpServletResponse.class));
+        verify(authService, times(1)).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
         verifyNoMoreInteractions(authService);
     }
 }

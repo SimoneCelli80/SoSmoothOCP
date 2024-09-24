@@ -7,8 +7,10 @@ import com.sosmoothocp.app.rest.request.RegistrationRequest;
 import com.sosmoothocp.app.rest.response.ApiResponse;
 import com.sosmoothocp.app.rest.response.LoginResponse;
 import com.sosmoothocp.app.services.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +38,20 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        return ResponseEntity.ok(authService.login(loginRequest, response));
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        return ResponseEntity.ok(authService.loginUser(loginRequest, response));
+    }
+
+    @PostMapping("refresh-token")
+    public ResponseEntity<String> refreshAccessToken(HttpServletRequest request) {
+        String newAccessToken = authService.refreshAccessToken(request);
+        return ResponseEntity.ok(newAccessToken);
+    }
+
+    @PostMapping("logout")
+    public ResponseEntity<ApiResponse> logoutUser(HttpServletResponse response) {
+        authService.logoutUser(response);
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.OK.value(), "User successfully logged out.");
+        return ResponseEntity.ok(apiResponse);
     }
 }

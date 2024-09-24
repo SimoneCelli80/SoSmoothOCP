@@ -10,5 +10,6 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 public class LoginResponse {
-    String userName;
+    private String userName;
+    private String accessToken;
 }
