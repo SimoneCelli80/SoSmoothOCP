@@ -37,6 +37,8 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String userName;
 
+    private boolean isEmailVerified = false;
+
     @Builder.Default
     @ElementCollection(targetClass = RolesEnum.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_uuid"))
@@ -61,6 +63,11 @@ public class User implements UserDetails {
         return userName;
     }
 
+    public boolean getIsEmailVerified() {
+        return isEmailVerified;
+    }
 
-
+    public void setIsEmailVerified(boolean isVerified) {
+        this.isEmailVerified = isVerified;
+    }
 }
