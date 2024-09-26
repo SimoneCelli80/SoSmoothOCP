@@ -65,7 +65,7 @@ public class AuthService {
         user.setIsEmailVerified(false);
         userRepository.save(user);
         ConfirmationToken confirmationToken = confirmationTokenService.createConfirmationToken(user);
-        String confirmationLink ="http://localhost:8080/api/auth/confirm?token=" + confirmationToken;
+        String confirmationLink ="http://localhost:3000/auth/confirm?token=" + confirmationToken;
         String emailMessage = String.format(emailBody, user.getFullName(), confirmationLink);
         emailService.sendConfirmationEmail(user.getEmail(), emailSubject, emailMessage);
     }
