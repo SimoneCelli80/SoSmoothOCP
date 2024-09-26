@@ -2,6 +2,7 @@ package com.sosmoothocp.app.services;
 
 import com.sosmoothocp.app.mappers.UserMapper;
 import com.sosmoothocp.app.persistence.entities.User;
+import com.sosmoothocp.app.persistence.repositories.ConfirmationTokenRepository;
 import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import org.springframework.http.HttpStatus;
@@ -16,9 +17,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     UserRepository userRepository;
+    ConfirmationTokenRepository confirmationTokenRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ConfirmationTokenRepository confirmationTokenRepository) {
         this.userRepository = userRepository;
+        this.confirmationTokenRepository = confirmationTokenRepository;
+
     }
 
     public UserDto getUserById(UUID uuid) {
@@ -35,6 +39,7 @@ public class UserService {
     }
 
     public void deleteAllUsers() {
+        confirmationTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

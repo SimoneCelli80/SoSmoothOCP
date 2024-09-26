@@ -29,10 +29,10 @@ import java.util.Map;
 @Service
 public class AuthService {
 
-    @Value("${email.subject")
+    @Value("${email.subject}")
     private String emailSubject;
 
-    @Value("${emailBody")
+    @Value("${email.body}")
     private String emailBody;
 
     private final UserRepository userRepository;
@@ -65,7 +65,7 @@ public class AuthService {
         user.setIsEmailVerified(false);
         userRepository.save(user);
         ConfirmationToken confirmationToken = confirmationTokenService.createConfirmationToken(user);
-        String confirmationLink ="http://localhost:3000/auth/confirm?token=" + confirmationToken;
+        String confirmationLink ="http://localhost:3000/auth/confirm?token=" + confirmationToken.getConfirmationToken();
         String emailMessage = String.format(emailBody, user.getFullName(), confirmationLink);
         emailService.sendConfirmationEmail(user.getEmail(), emailSubject, emailMessage);
     }

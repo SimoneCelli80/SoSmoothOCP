@@ -20,9 +20,10 @@ public class ConfirmationTokenService {
     UserService userService;
     UserRepository userRepository;
 
-    public ConfirmationTokenService(ConfirmationTokenRepository confirmationTokenRepository, UserService userService) {
+    public ConfirmationTokenService(ConfirmationTokenRepository confirmationTokenRepository, UserService userService, UserRepository userRepository) {
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     public ConfirmationToken createConfirmationToken(User user) {
