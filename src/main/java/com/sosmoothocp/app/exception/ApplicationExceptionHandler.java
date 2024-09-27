@@ -1,6 +1,5 @@
 package com.sosmoothocp.app.exception;
 
-import org.antlr.v4.runtime.Token;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,6 +62,16 @@ public class ApplicationExceptionHandler {
 
     @ExceptionHandler(EmailNotConfirmedException.class)
     public ResponseEntity<ApiErrorResponse> handleEmailNotConfirmedException(EmailNotConfirmedException exception) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                exception.getStatusCode().value(),
+                exception.getReason(),
+                null
+        );
+        return new ResponseEntity<>(response, exception.getStatusCode());
+    }
+
+    @ExceptionHandler(MailNotSentException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmailNotSentException(MailNotSentException exception) {
         ApiErrorResponse response = new ApiErrorResponse(
                 exception.getStatusCode().value(),
                 exception.getReason(),

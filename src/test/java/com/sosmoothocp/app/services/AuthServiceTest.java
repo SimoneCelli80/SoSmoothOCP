@@ -91,7 +91,7 @@ public class AuthServiceTest {
 
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.of(registeredUser));
         when(passwordEncoder.matches(loginRequest.password(), registeredUser.getPassword())).thenReturn(true);
-        LoginResponse loggedInUser = authService.login(loginRequest, httpServletResponse);
+        LoginResponse loggedInUser = authService.loginUser(loginRequest, httpServletResponse);
 
         Assertions.assertThat(loggedInUser).isNotNull().isInstanceOf(LoginResponse.class);
         Assertions.assertThat(loggedInUser.getUserName()).isEqualTo(registeredUser.getUserName());
@@ -112,7 +112,7 @@ public class AuthServiceTest {
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.empty());
 
         ResponseStatusException exception = Assertions.catchThrowableOfType(
-                () -> authService.login(loginRequest, httpServletResponse),
+                () -> authService.loginUser(loginRequest, httpServletResponse),
                 ResponseStatusException.class
         );
 
@@ -134,7 +134,7 @@ public class AuthServiceTest {
         when(passwordEncoder.matches(loginRequest.password(), registeredUser.getPassword())).thenReturn(false); // Password errata
 
         ResponseStatusException exception = Assertions.catchThrowableOfType(
-                () -> authService.login(loginRequest, httpServletResponse),
+                () -> authService.loginUser(loginRequest, httpServletResponse),
                 ResponseStatusException.class
         );
 

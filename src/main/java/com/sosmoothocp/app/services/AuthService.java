@@ -11,6 +11,7 @@ import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.response.LoginResponse;
+import com.sosmoothocp.app.rest.response.MailSentResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +52,7 @@ public class AuthService {
         this.confirmationTokenService = confirmationTokenService;
     }
 
-    public void registerUser(UserDto userDto) {
+    public MailSentResponse registerUser(UserDto userDto) {
         if(userRepository.existsByEmail(userDto.getEmail())) {
             throw new FieldValidationException("email", "Email is already in use. Please choose another one.");
         }
@@ -67,7 +68,7 @@ public class AuthService {
         ConfirmationToken confirmationToken = confirmationTokenService.createConfirmationToken(user);
         String confirmationLink ="http://localhost:3000/auth/confirm?token=" + confirmationToken.getConfirmationToken();
         String emailMessage = String.format(emailBody, user.getFullName(), confirmationLink);
-        emailService.sendConfirmationEmail(user.getEmail(), emailSubject, emailMessage);
+        return emailService.sendConfirmationEmail(user.getEmail(), emailSubject, emailMessage);
     }
 
     public LoginResponse loginUser(LoginRequest loginRequest, HttpServletResponse response) {

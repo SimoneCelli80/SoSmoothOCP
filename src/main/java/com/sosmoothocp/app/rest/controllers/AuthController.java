@@ -6,6 +6,7 @@ import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.request.RegistrationRequest;
 import com.sosmoothocp.app.rest.response.ApiResponse;
 import com.sosmoothocp.app.rest.response.LoginResponse;
+import com.sosmoothocp.app.rest.response.MailSentResponse;
 import com.sosmoothocp.app.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,10 +29,9 @@ public class AuthController {
     }
 
     @PostMapping("registration")
-    ResponseEntity<ApiResponse> registerUser(@RequestBody @Valid RegistrationRequest userRequest) {
-        authService.registerUser(UserMapper.fromRequestToDto(userRequest));
-        ApiResponse response = new ApiResponse(HttpStatus.CREATED.value(), "User registered successfully.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<MailSentResponse> registerUser(@RequestBody @Valid RegistrationRequest userRequest) {
+        MailSentResponse mailSentResponse = authService.registerUser(UserMapper.fromRequestToDto(userRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mailSentResponse);
     }
 
     @PostMapping("login")
