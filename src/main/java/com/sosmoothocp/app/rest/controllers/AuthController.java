@@ -1,22 +1,18 @@
 package com.sosmoothocp.app.rest.controllers;
 
 import com.sosmoothocp.app.mappers.UserMapper;
-import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.request.RegistrationRequest;
 import com.sosmoothocp.app.rest.response.ApiResponse;
 import com.sosmoothocp.app.rest.response.LoginResponse;
-import com.sosmoothocp.app.rest.response.MailSentResponse;
+import com.sosmoothocp.app.rest.response.EmailSentResponse;
 import com.sosmoothocp.app.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth/")
@@ -29,8 +25,8 @@ public class AuthController {
     }
 
     @PostMapping("registration")
-    public ResponseEntity<MailSentResponse> registerUser(@RequestBody @Valid RegistrationRequest userRequest) {
-        MailSentResponse mailSentResponse = authService.registerUser(UserMapper.fromRequestToDto(userRequest));
+    public ResponseEntity<EmailSentResponse> registerUser(@RequestBody @Valid RegistrationRequest userRequest) {
+        EmailSentResponse mailSentResponse = authService.registerUser(UserMapper.fromRequestToDto(userRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(mailSentResponse);
     }
 

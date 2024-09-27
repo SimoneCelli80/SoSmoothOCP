@@ -1,7 +1,7 @@
 package com.sosmoothocp.app.services;
 
-import com.sosmoothocp.app.exception.MailNotSentException;
-import com.sosmoothocp.app.rest.response.MailSentResponse;
+import com.sosmoothocp.app.exception.EmailNotSentException;
+import com.sosmoothocp.app.rest.response.EmailSentResponse;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,16 +16,16 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public MailSentResponse sendConfirmationEmail(String to, String subject, String text) {
+    public EmailSentResponse sendConfirmationEmail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
             mailSender.send(message);
-            return new MailSentResponse();
+            return new EmailSentResponse();
         } catch (MailException exception) {
-            throw new MailNotSentException();
+            throw new EmailNotSentException();
         }
     }
 }

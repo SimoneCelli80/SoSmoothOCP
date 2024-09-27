@@ -11,7 +11,7 @@ import com.sosmoothocp.app.persistence.repositories.UserRepository;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.response.LoginResponse;
-import com.sosmoothocp.app.rest.response.MailSentResponse;
+import com.sosmoothocp.app.rest.response.EmailSentResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,14 +52,17 @@ public class AuthService {
         this.confirmationTokenService = confirmationTokenService;
     }
 
-    public MailSentResponse registerUser(UserDto userDto) {
+    public void setEmailBody(String emailBody) {
+        this.emailBody = emailBody;
+    }
+
+    public EmailSentResponse registerUser(UserDto userDto) {
         if(userRepository.existsByEmail(userDto.getEmail())) {
             throw new FieldValidationException("email", "Email is already in use. Please choose another one.");
         }
         if (userRepository.existsByUserName(userDto.getUserName())) {
             throw new FieldValidationException("username", "Username is already in use. Please choose another one.");
         }
-
         String hashPassword = passwordEncoder.encode(userDto.getPassword());
         User user = UserMapper.fromDtoToEntity(userDto);
         user.setPassword(hashPassword);
@@ -88,15 +91,7 @@ public class AuthService {
         );
         authenticationManager.authenticate(authToken);
         String accessToken = jwtUtil.generateToken(user, generateExtraClaims(user));
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false); // Turn to true in production and use https
-        refreshCookie.setPath("/api/auth/refresh-token");
-        refreshCookie.setMaxAge((int) JwtConstants.REFRESH_EXPIRATION_TIME / 1000);
-        response.addCookie(refreshCookie);
-
+        response.addCookie(getRefreshCookie(user));
         return new LoginResponse(user.getUserName(), accessToken);
     }
 
@@ -134,6 +129,16 @@ public class AuthService {
         refreshTokenCookie.setPath("/api/auth/refresh-token");
         refreshTokenCookie.setMaxAge(0);
         response.addCookie(refreshTokenCookie);
+    }
+
+    private Cookie getRefreshCookie(User user) {
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false); // Turn to true in production and use https
+        refreshCookie.setPath("/api/auth/refresh-token");
+        refreshCookie.setMaxAge((int) JwtConstants.REFRESH_EXPIRATION_TIME / 1000);
+        return refreshCookie;
     }
 
 }

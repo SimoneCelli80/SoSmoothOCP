@@ -70,8 +70,8 @@ public class ApplicationExceptionHandler {
         return new ResponseEntity<>(response, exception.getStatusCode());
     }
 
-    @ExceptionHandler(MailNotSentException.class)
-    public ResponseEntity<ApiErrorResponse> handleEmailNotSentException(MailNotSentException exception) {
+    @ExceptionHandler(EmailNotSentException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmailNotSentException(EmailNotSentException exception) {
         ApiErrorResponse response = new ApiErrorResponse(
                 exception.getStatusCode().value(),
                 exception.getReason(),

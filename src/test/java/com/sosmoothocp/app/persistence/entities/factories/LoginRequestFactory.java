@@ -6,7 +6,7 @@ import com.sosmoothocp.app.rest.request.RegistrationRequest;
 public class LoginRequestFactory {
     public static LoginRequest.LoginRequestBuilder aLoginRequest() {
         return LoginRequest.builder()
-                .email("mario.rossi@capgemini.com")
+                .email("mario.rossi123456789@capgemini.com")
                 .password("Password1#");
 
     }

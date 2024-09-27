@@ -3,11 +3,13 @@ package com.sosmoothocp.app.rest.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sosmoothocp.app.config.JwtAuthenticationFilter;
+import com.sosmoothocp.app.exception.EmailNotConfirmedException;
 import com.sosmoothocp.app.persistence.entities.factories.LoginRequestFactory;
 import com.sosmoothocp.app.persistence.entities.factories.RegistrationRequestFactory;
 import com.sosmoothocp.app.rest.dto.UserDto;
 import com.sosmoothocp.app.rest.request.LoginRequest;
 import com.sosmoothocp.app.rest.request.RegistrationRequest;
+import com.sosmoothocp.app.rest.response.EmailSentResponse;
 import com.sosmoothocp.app.rest.response.LoginResponse;
 import com.sosmoothocp.app.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,9 +47,10 @@ public class AuthControllerTest {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     @Test
-    void givenAValidRegistrationRequest_whenRegisteringAUser_thenA201CShouldBeReturned() throws Exception {
+    void givenAValidRegistrationRequest_whenRegisteringAUser_thenA201AndAnEmailSentResponseShouldBeReturned() throws Exception {
+        EmailSentResponse emailSentResponse = new EmailSentResponse();
         RegistrationRequest registrationRequest = RegistrationRequestFactory.aRegistrationRequest().build();
-        doNothing().when(authService).registerUser(any(UserDto.class));
+        when(authService.registerUser(any(UserDto.class))).thenReturn(emailSentResponse);
 
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(registrationRequest))
@@ -97,6 +100,20 @@ public class AuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+        verify(authService, times(1)).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
+        verifyNoMoreInteractions(authService);
+    }
+
+    @Test
+    void givenAUserWithNoVerifiedEmail_WhenLoggingIn_thenAnEmailNotConfirmedExceptionShouldBeReturned() throws Exception {
+        LoginRequest invalidLoginRequest = LoginRequestFactory.aLoginRequest().build();
+        doThrow(new EmailNotConfirmedException()).when(authService).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
+        mockMvc.perform(post("/api/auth/login")
+                        .content(objectMapper.writeValueAsString(invalidLoginRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden());
         verify(authService, times(1)).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
         verifyNoMoreInteractions(authService);
     }

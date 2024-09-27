@@ -10,8 +10,8 @@ public class ConfirmationResponse {
 
 
 
-    public ConfirmationResponse(String message) {
-        this.message = message;
+    public ConfirmationResponse() {
+        this.message = ("Email successfully confirmed! You can now log in to your account.");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
         this.timestamp = LocalDateTime.now().format(formatter);
     }

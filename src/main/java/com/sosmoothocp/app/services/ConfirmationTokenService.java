@@ -31,7 +31,7 @@ public class ConfirmationTokenService {
         return confirmationTokenRepository.save(confirmationToken);
     }
 
-    public ResponseEntity<ConfirmationResponse> confirmToken(String token) {
+    public ConfirmationResponse confirmToken(String token) {
         if (!confirmationTokenRepository.existsByConfirmationToken(token)) {
             throw new TokenException(HttpStatus.NOT_FOUND, "The confirmation token is invalid. Please make sure you are using the correct link from your confirmation email.");
         }
@@ -42,7 +42,7 @@ public class ConfirmationTokenService {
         }
         enableUser(confirmationToken.getUser().getEmail());
         confirmationTokenRepository.delete(confirmationToken);
-        return ResponseEntity.ok(new ConfirmationResponse("Email successfully confirmed! You can now log in to your account."));
+        return new ConfirmationResponse();
     }
 
     public void enableUser(String email) {
