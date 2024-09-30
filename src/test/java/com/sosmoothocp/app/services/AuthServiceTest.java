@@ -18,10 +18,14 @@ import com.sosmoothocp.app.rest.response.LoginResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.assertj.core.api.Assertions;
+import org.hibernate.Interceptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,6 +38,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -46,6 +52,8 @@ public class AuthServiceTest {
     @Mock
     private HttpServletResponse httpServletResponse;
     @Mock
+    private HttpServletRequest httpServletRequest;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private AuthenticationManager authenticationManager;
@@ -55,6 +63,8 @@ public class AuthServiceTest {
     ConfirmationTokenService confirmationTokenService;
     @Mock
     EmailService emailService;
+    @Captor
+    private ArgumentCaptor<Cookie> cookieCaptor;
     @InjectMocks
     private AuthService authService;
     private final String hashedPassword = "ThisWillBeTheHashedPasswordAndNotTheSameAsRequestPassword";
@@ -87,7 +97,6 @@ public class AuthServiceTest {
 
     @Test
     void givenARegistrationRequestWithEmailAlreadyInUse_whenRegisteringAUser_thenA400ShouldBeThrown() {
-        User registeredUser = UserFactory.aUser().build();
         RegistrationRequest registrationRequest = RegistrationRequestFactory.aRegistrationRequest().build();
         FieldValidationException expectedException = new FieldValidationException("email", "Email is already in use. Please choose another one.");
         when(userRepository.existsByEmail(any(String.class))).thenReturn(true);
@@ -158,49 +167,68 @@ public class AuthServiceTest {
         verifyNoInteractions(jwtUtil);
     }
 
-//    public String refreshAccessToken(HttpServletRequest request) {
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies == null) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No cookies present.");
-//        }
-//        String refreshToken = Arrays.stream(cookies)
-//                .filter(cookie -> "refreshToken".equals(cookie.getName()))
-//                .findFirst()
-//                .map(Cookie::getValue)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token missing."));
-//        try {
-//            jwtUtil.validateToken(refreshToken);
-//        } catch (ExpiredJwtException e) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired.");
-//        }
-//        String userEmail = jwtUtil.extractUserEmail(refreshToken);
-//        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found."));
-//        return jwtUtil.generateToken(user, generateExtraClaims(user));
-//    }
 
+    @Test
+    void givenAValidAccessToken_whenRefreshingAccessToken_thenARefreshedAccessTokenShouldBeReturned () {
+        User user = UserFactory.aUser().build();
+        String userEmail = user.getEmail();
+        httpServletRequest.setAttribute("user", user);
+        String refreshToken = "refreshToken";
+        Cookie[] cookies = {new Cookie("refreshToken", refreshToken)};
+        when(httpServletRequest.getCookies()).thenReturn(cookies);
+        when(jwtUtil.extractUserEmail(refreshToken)).thenReturn(userEmail);
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(jwtUtil.generateToken(eq(user), anyMap())).thenReturn("newAccessToken");
 
-//
-//    public void logoutUser(HttpServletResponse response) {
-//        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-//        refreshTokenCookie.setHttpOnly(true);
-//        refreshTokenCookie.setSecure(false);
-//        refreshTokenCookie.setPath("/api/auth/refresh-token");
-//        refreshTokenCookie.setMaxAge(0);
-//        response.addCookie(refreshTokenCookie);
-//    }
+        String newToken = authService.refreshAccessToken(httpServletRequest);
+
+        assertEquals("newAccessToken", newToken);
+        verify(jwtUtil).validateToken(refreshToken);
+        verify(jwtUtil).generateToken(eq(user), anyMap());
+    }
+
+    @Test
+    void givenAnInvalidAccessToken_whenRefreshingAccessToken_thenAUnauthorizedExceptionShouldBeThrown () {
+        ResponseStatusException expectedException = new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No cookies present.");
+        when(httpServletRequest.getCookies()).thenReturn(null);
+        ResponseStatusException exception = Assertions.catchThrowableOfType(
+                () -> authService.refreshAccessToken(httpServletRequest),
+                ResponseStatusException.class
+        );
+        assertEquals(exception.getMessage(), expectedException.getMessage());
+        assertEquals(exception.getReason(), expectedException.getReason());
+    }
+
+    @Test
+    void givenAnExpiredToken_whenRefreshingAccessToken_thenAUnauthorizedExceptionShouldBeThrown () {
+        User user = UserFactory.aUser().build();
+        String userEmail = user.getEmail();
+        ResponseStatusException expectedException = new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token expired.");
+        httpServletRequest.setAttribute("user", user);
+        String expiredToken = "expiredToken";
+        Cookie[] cookies = {new Cookie("refreshToken", expiredToken)};
+        when(httpServletRequest.getCookies()).thenReturn(cookies);
+
+        when(jwtUtil.validateToken(expiredToken)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token expired."));
+
+        ResponseStatusException exception = Assertions.catchThrowableOfType(
+                () -> authService.refreshAccessToken(httpServletRequest),
+                ResponseStatusException.class
+        );
+        assertEquals(exception.getMessage(), expectedException.getMessage());
+        assertEquals(exception.getReason(), expectedException.getReason());
+        verify(jwtUtil).validateToken(anyString());
+    }
 
     @Test
     void givenAValidCookie_whenLoggingOutAUser_thenTheCookieShouldBeRemoved() {
-        User user =UserFactory.aUser().build();
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false); // Turn to true in production and use https
-        refreshCookie.setPath("/api/auth/refresh-token");
-        refreshCookie.setMaxAge((int) JwtConstants.REFRESH_EXPIRATION_TIME / 1000);
-
         authService.logoutUser(httpServletResponse);
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(httpServletResponse).addCookie(cookieCaptor.capture());
+        Cookie capturedCookie = cookieCaptor.getValue();
+        assertEquals(capturedCookie.isHttpOnly(), true);
+        assertEquals(capturedCookie.getSecure(), false);
+        assertEquals(capturedCookie.getPath(), "/api/auth/refresh-token");
+        assertEquals(capturedCookie.getMaxAge(), 0);
     }
-
-
 }

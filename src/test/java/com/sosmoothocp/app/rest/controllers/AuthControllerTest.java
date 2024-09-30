@@ -12,6 +12,7 @@ import com.sosmoothocp.app.rest.request.RegistrationRequest;
 import com.sosmoothocp.app.rest.response.EmailSentResponse;
 import com.sosmoothocp.app.rest.response.LoginResponse;
 import com.sosmoothocp.app.services.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,12 @@ public class AuthControllerTest {
 
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private HttpServletRequest httpServletRequest;
+
+    @MockBean
+    private HttpServletResponse httpServletResponse;
 
     private ObjectMapper objectMapper = new ObjectMapper()
             .findAndRegisterModules()
@@ -116,5 +123,28 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
         verify(authService, times(1)).loginUser(any(LoginRequest.class), any(HttpServletResponse.class));
         verifyNoMoreInteractions(authService);
+    }
+
+
+    @Test
+    void givenAValidToken_whenRefreshingAToken_thenAnOkResponseWithTheTokenShouldBeReturned() throws Exception {
+        when(authService.refreshAccessToken(httpServletRequest)).thenReturn(anyString());
+
+        mockMvc.perform(post("/api/auth/refresh-token"))
+                .andDo(print())
+                .andExpect(status().isOk());
+        verify(authService, times(1)).refreshAccessToken(any(HttpServletRequest.class));
+        verifyNoMoreInteractions(authService);
+    }
+
+    @Test
+    void givenAValidServletResponse_whenLoggingOut_thenAnOkApiResponseShouldBeReturned() throws Exception {
+
+        mockMvc.perform(post("/api/auth/logout"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("User successfully logged out."));
+
     }
 }

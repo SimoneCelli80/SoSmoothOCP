@@ -68,11 +68,10 @@ public class ConfirmationTokenServiceTest {
         when(confirmationTokenRepository.findByConfirmationToken(anyString())).thenReturn(Optional.of(confirmationToken));
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
         doNothing().when(confirmationTokenRepository).delete(confirmationToken);
-        ConfirmationResponse confirmationResponse = confirmationTokenService.confirmToken(confirmationToken.getConfirmationToken());
+
+        confirmationTokenService.confirmToken(confirmationToken.getConfirmationToken());
 
         assertEquals(user.getIsEmailVerified(), true);
-        assertEquals(confirmationResponse.getMessage(), expectedMessage);
-
         verify(confirmationTokenRepository, times(1)).existsByConfirmationToken(anyString());
         verify(confirmationTokenRepository, times(1)).findByConfirmationToken(anyString());
         verify(confirmationTokenRepository, times(1)).delete(any(ConfirmationToken.class));
@@ -87,7 +86,6 @@ public class ConfirmationTokenServiceTest {
         String expectedMessage = "The confirmation token is invalid. Please make sure you are using the correct link from your confirmation email.";
 
         when(confirmationTokenRepository.existsByConfirmationToken(anyString())).thenReturn(false);
-
 
         TokenException thrownException = assertThrows(TokenException.class, () -> confirmationTokenService.confirmToken(anyString()));
         assertEquals(thrownException.getClass(), TokenException.class);

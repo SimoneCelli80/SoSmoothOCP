@@ -21,7 +21,8 @@ public class ConfirmationTokenController {
 
     @GetMapping("/confirm")
     public ResponseEntity<ConfirmationResponse> confirmEmail(@RequestParam String token) {
-        return ResponseEntity.ok().body(confirmationTokenService.confirmToken(token));
+        confirmationTokenService.confirmToken(token);
+        return ResponseEntity.ok().body(new ConfirmationResponse());
     }
 
 }
