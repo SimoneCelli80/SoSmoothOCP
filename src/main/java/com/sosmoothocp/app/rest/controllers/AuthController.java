@@ -47,4 +47,11 @@ public class AuthController {
         ApiResponse apiResponse = new ApiResponse(HttpStatus.OK.value(), "User successfully logged out.");
         return ResponseEntity.ok(apiResponse);
     }
+
+//    @PostMapping("change-password")
+//    public ResponseEntity<ApiResponse> changePassword (String email) {
+//        authService.requestChangePassword(email);
+//        ApiResponse apiResponse = new ApiResponse(HttpStatus.OK.value(), "An email has been sent with the instructions to change your password.");
+//        return ResponseEntity.ok(apiResponse);
+//    }
 }

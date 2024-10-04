@@ -4,6 +4,7 @@ import com.sosmoothocp.app.config.JwtConstants;
 import com.sosmoothocp.app.config.JwtUtil;
 import com.sosmoothocp.app.exception.EmailNotConfirmedException;
 import com.sosmoothocp.app.exception.FieldValidationException;
+import com.sosmoothocp.app.exception.TokenException;
 import com.sosmoothocp.app.mappers.UserMapper;
 import com.sosmoothocp.app.persistence.entities.ConfirmationToken;
 import com.sosmoothocp.app.persistence.entities.User;
@@ -23,6 +24,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,5 +143,11 @@ public class AuthService {
         refreshCookie.setMaxAge((int) JwtConstants.REFRESH_EXPIRATION_TIME / 1000);
         return refreshCookie;
     }
+
+//    public void changePassword(String email, ) {
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sorry, we have found no user with this email"));
+//
+//    }
 
 }

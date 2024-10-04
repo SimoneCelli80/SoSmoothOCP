@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 @Service
 public class UserService {
 
@@ -27,7 +29,7 @@ public class UserService {
 
     public UserDto getUserById(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with UUID %s not found. Please enter a valid UUID.", uuid)
+                new ResponseStatusException(HttpStatus.NOT_FOUND, format("User with UUID %s not found. Please enter a valid UUID.", uuid)
         ));
         return UserMapper.fromEntityToDto(user);
     }
@@ -41,6 +43,12 @@ public class UserService {
     public void deleteAllUsers() {
         confirmationTokenRepository.deleteAll();
         userRepository.deleteAll();
+    }
+
+    public UserDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, format("Sorry, there is no user with email %n.",email)));
+        return UserMapper.fromEntityToDto(user);
     }
 
 
